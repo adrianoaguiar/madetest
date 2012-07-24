@@ -112,6 +112,9 @@ abstract class Made_Test_PHPUnit_Abstract_TestCase
      */
     protected function setUpUnit()
     {
+        // stop sessions being started
+        $_SESSION = array();
+        
         // use runkit to add set app
         Made_Test_Runkit_Helper::addSetApp();
 

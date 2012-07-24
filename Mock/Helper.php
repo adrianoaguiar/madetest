@@ -116,4 +116,32 @@ class Made_Test_Mock_Helper
         
         return $layout;
     }
+
+    /**
+     * Set a mock front controller into Mage::app(), requires {@link mockApp()}
+     * to have been called prior
+     *
+     * @return Mage_Core_Controller_Varien_Front
+     */
+    static public function mockFrontController()
+    {
+        // @todo throw when Mage::app() is not a mock
+        
+        $frontController = PHPUnit_Framework_MockObject_Generator::getMock(
+            'Mage_Core_Controller_Varien_Front',
+            array(),
+            array(),
+            '',
+            false,
+            true,
+            true
+        );
+
+        // set the front controller into Mage_Core_Model_App
+        Mage::app()->expects(new PHPUnit_Framework_MockObject_Matcher_AnyInvokedCount())
+                   ->method('getFrontController')
+                   ->will(new PHPUnit_Framework_MockObject_Stub_Return($frontController));
+        
+        return $frontController;
+    }
 }
