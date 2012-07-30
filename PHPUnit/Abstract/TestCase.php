@@ -78,12 +78,12 @@ abstract class Made_Test_PHPUnit_Abstract_TestCase
     {
         parent::setUp();
 
-        if ($this->isInGroup('unit')) {
-            $this->setUpUnit();
-        } elseif ($this->isInGroup('integration')) {
+        if ($this->isInGroup('integration')) {
             $this->setUpIntegration();
-        } elseif ($this->isInGroup('functional')) {
+        } else if ($this->isInGroup('functional')) {
             $this->setUpFunctional();
+        } else {
+            $this->setUpUnit();
         }
     }
 
@@ -94,12 +94,12 @@ abstract class Made_Test_PHPUnit_Abstract_TestCase
      */
     protected function tearDown()
     {
-        if ($this->isInGroup('unit')) {
-            $this->tearDownUnit();
-        } elseif ($this->isInGroup('integration')) {
+        if ($this->isInGroup('integration')) {
             $this->tearDownIntegration();
-        } elseif ($this->isInGroup('functional')) {
+        } else if ($this->isInGroup('functional')) {
             $this->tearDownFunctional();
+        } else {
+            $this->tearDownUnit();
         }
 
         parent::tearDown();
@@ -309,21 +309,29 @@ abstract class Made_Test_PHPUnit_Abstract_TestCase
 
     /**
      * Shortcut to getting a mock with a disabled constructor, and with certain
-     * methods
+     * methods which are appended to the list of methods, rather than used as
+     * the full list
      *
      * @param string       $class   The class name to get a mock for
-     * @param string|array $methods Optional, the methods to mock, CSV string or array
+     * @param string|array $methods Optional, extra methods to mock, CSV string or array
      *
      * @return stdObject The mocked object
      */
     public function mock($class, $methods = null)
     {
-        $mockBuilder = $this->getMockBuilder($class);
-        $mockBuilder->disableOriginalConstructor();
         if ($methods) {
             if (is_string($methods)) {
                 $methods = explode(',', $methods);
             }
+            if (class_exists($class)) {
+                $classMethods = get_class_methods($class);
+                $methods = array_merge($methods, $classMethods);
+                $methods = array_unique($methods);
+            }
+        }
+        $mockBuilder = $this->getMockBuilder($class);
+        $mockBuilder->disableOriginalConstructor();
+        if ($methods) {
             $mockBuilder->setMethods($methods);
         }
         return $mockBuilder->getMock();
@@ -469,7 +477,10 @@ abstract class Made_Test_PHPUnit_Abstract_TestCase
      */
     protected function isInGroup($name)
     {
-        return in_array($name, $this->getGroups());
+        if (is_array($this->getGroups())) {
+            return in_array($name, $this->getGroups());
+        }
+        return false;
     }
 
     /**
