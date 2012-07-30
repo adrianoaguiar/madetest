@@ -308,6 +308,44 @@ abstract class Made_Test_PHPUnit_Abstract_TestCase
     }
 
     /**
+     * Shortcut to getting a mock with a disabled constructor, and with certain
+     * methods
+     *
+     * @param string       $class   The class name to get a mock for
+     * @param string|array $methods Optional, the methods to mock, CSV string or array
+     *
+     * @return stdObject The mocked object
+     */
+    public function mock($class, $methods = null)
+    {
+        $mockBuilder = $this->getMockBuilder($class);
+        $mockBuilder->disableOriginalConstructor();
+        if ($methods) {
+            if (is_string($methods)) {
+                $methods = explode(',', $methods);
+            }
+            $mockBuilder->setMethods($methods);
+        }
+        return $mockBuilder->getMock();
+    }
+
+    /**
+     * Shortcut to setting a return value from a mock method
+     *
+     * @param stdObject $mockObject The mock object
+     * @param string    $method     The method
+     * @param mixed     $return     The return value
+     *
+     * @return stdObject The mock object
+     */
+    public function mockReturn($mockObject, $method, $return)
+    {
+        $mockObject->expects($this->any())
+            ->method($method)
+            ->will($this->returnValue($return));
+    }
+
+    /**
      * Set a config value on-the-fly for the current store
      *
      * Should not be used during unit tests
