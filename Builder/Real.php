@@ -222,7 +222,8 @@ class Made_Test_Builder_Real
     /**
      * Create an order
      *
-     * @param array                                     $itemsData       A 2d array of items, keyed by sku on the 1st
+     * @param array                                     $itemsData       For ease of use, you can choose one of 5 forms
+     *                                                                   for this argument, see the extended description
      *                                                                   dimension then associative (such as qty => 1) on
      *                                                                   the 2nd dimension - see examples below
      * @param Mage_Customer_Model_Customer | int | null $customer        Null to have no customer assigned to the order,
@@ -234,6 +235,14 @@ class Made_Test_Builder_Real
      *                                                                   with the method defined here
      * @param array                                     $quoteData       An associative array of quote data, such as
      *                                                                   store_id or customer_email
+     *
+     * Examples for the $itemsData argument:
+     *
+     * One SKU, string:     'SKU1'
+     * One SKU, instance:   Mage_Catalog_Model_Product
+     * Multi SKU, string:   array('SKU1', 'SKU2')
+     * Multi SKU, instance: array(Mage_Catalog_Model_Product, Mage_Catalog_Model_Product)
+     * Multi SKU, extended: array('SKU1' => array('qty' => 4), 'SKU2' => array('qty' => 1))
      *
      * Example - Create an order for customer ID 1, with 2 items, and the default address data:
      *
@@ -286,7 +295,7 @@ class Made_Test_Builder_Real
      *
      * @return Mage_Sales_Model_Order The order
      */
-    public static function createOrder(array $itemsData,
+    public static function createOrder($itemsData,
                                        $customer = null,
                                        $billingAddress = array(),
                                        $shippingAddress = array(),
@@ -294,6 +303,21 @@ class Made_Test_Builder_Real
                                        $quoteData = array())
     {
         // argument conversion
+        if (is_string($itemsData)) {
+            $itemsData = array($itemsData => array('qty' => 1));
+        } else if ($itemsData instanceof Mage_Catalog_Model_Product) {
+            $itemsData = array($itemsData->getSku() => array('qty' => 1));
+        } else if (is_array($itemsData)) {
+            foreach ($itemsData as $key => $val) {
+                if (is_string($val)) {
+                    $itemsData[$val] = array('qty' => 1);
+                    unset($itemsData[$key]);
+                } else if ($val instanceof Mage_Catalog_Model_Product) {
+                    $itemsData[$val->getSku()] = array('qty' => 1);
+                    unset($itemsData[$key]);
+                }
+            }
+        }
         if (is_numeric($customer)) {
             $customer = Mage::getModel('customer/customer')->load($customer);
         }
