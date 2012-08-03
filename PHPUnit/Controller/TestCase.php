@@ -151,12 +151,18 @@ abstract class Made_Test_PHPUnit_Controller_TestCase
      * 
      * @return void
      */
-    public function reset()
+    public function reset($resetSession = false)
     {
         $_GET = array();
         $_POST = array();
-        $this->tearDown();
-        $this->setUp();
+        if ($resetSession) {
+            $_SESSION = array();
+        }
+        Mage::reset();
+        Mage::app();
+        Mage::setIsDeveloperMode(true);
+        Mage::app()->setRequest(new Made_Test_Controller_Request_HttpTestCase());
+        Mage::app()->setResponse(new Made_Test_Controller_Response_HttpTestCase());
     }
 
     public function assertFullRoute($fullRoute, $message = '')
