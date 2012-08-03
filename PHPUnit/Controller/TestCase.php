@@ -159,6 +159,48 @@ abstract class Made_Test_PHPUnit_Controller_TestCase
         $this->setUp();
     }
 
+    public function assertFullRoute($fullRoute, $message = '')
+    {
+        $this->addToAssertionCount(1);
+        $actualFullRoute = sprintf(
+            '%s_%s_%s',
+            $this->getRequest()->getRequestedRouteName(),
+            $this->getRequest()->getControllerName(),
+            $this->getRequest()->getActionName()
+        );
+        if ($fullRoute != $actualFullRoute) {
+            $msg = sprintf('Failed asserting matched full route was "%s", actual route is %s',
+                $fullRoute,
+                $actualFullRoute
+            );
+            if (!empty($message)) {
+                $msg = $message . "\n" . $msg;
+            }
+            $this->fail($msg);
+        }
+    }
+
+    public function assertNotFullRoute($fullRoute, $message = '')
+    {
+        $this->addToAssertionCount(1);
+        $actualFullRoute = sprintf(
+            '%s_%s_%s',
+            $this->getRequest()->getRequestedRouteName(),
+            $this->getRequest()->getControllerName(),
+            $this->getRequest()->getActionName()
+        );
+        if ($fullRoute == $actualFullRoute) {
+            $msg = sprintf('Failed asserting matched full route was NOT "%s", actual route is %s',
+                $fullRoute,
+                $actualFullRoute
+            );
+            if (!empty($message)) {
+                $msg = $message . "\n" . $msg;
+            }
+            $this->fail($msg);
+        }
+    }
+
     public function assertRoute($route, $message = '')
     {
         $this->addToAssertionCount(1);

@@ -31,13 +31,17 @@ class Made_Test_Builder_Real
     /**
      * Create a product
      *
-     * @param string $sku  The SKU
+     * @param string $sku  The SKU, if not passed in will be random
      * @param array  $data Override data
      *
      * @return Mage_Catalog_Model_Product
      */
-    public static function createProduct($sku, $data = array())
+    public static function createProduct($sku = null, $data = array())
     {
+        if (!$sku) {
+            $sku = substr(md5(rand() . rand()), 0, 10);
+        }
+
         $api = Mage::getModel('catalog/product_api');
 
         $defaultData = array(
@@ -159,20 +163,25 @@ class Made_Test_Builder_Real
     /**
      * Create a customer
      *
-     * @param string $email E-mail address
+     * @param string $email E-mail address, if not passed in will be random
      * @param array  $data  Override data
      *
      * @return Mage_Catalog_Model_Product
      */
-    public static function createCustomer($email, $data = array())
+    public static function createCustomer($email = null, $data = array())
     {
+        if (!$email) {
+            $email = substr(md5(rand() . rand()), 0, 10) . '@made.local';
+        }
+
         $api = Mage::getModel('customer/customer_api');
 
         $defaultData = array(
-            'email'                     => $email,
-            'firstname'                 => 'Test',
-            'lastname'                  => 'Test',
-            'group_id'                  => 1,
+            'email'     => $email,
+            'password'  => 'open.123',
+            'firstname' => 'Test',
+            'lastname'  => 'Test',
+            'group_id'  => 1,
         );
         $data = array_merge($defaultData, $data);
 
@@ -185,8 +194,7 @@ class Made_Test_Builder_Real
     /**
      * Delete a customer
      *
-     * @param Mage_Customer_Model_Customer | int $customer The customer ID or
-     *                                                     instance
+     * @param Mage_Customer_Model_Customer|intString $customer The customer ID, email or instance
      *
      * @return void
      */
@@ -194,6 +202,14 @@ class Made_Test_Builder_Real
     {
         if ($customer instanceof Mage_Customer_Model_Customer) {
             $id = $customer->getId();
+        } else if (!is_numeric($customer)) {
+            $id = Mage::getModel('customer/customer')
+                ->setWebsiteId(Mage::app()->getStore()->getWebsiteId())
+                ->loadByEmail($customer)
+                ->getId();
+            if (!$id) {
+                return;
+            }
         } else {
             $id = $customer;
         }
@@ -398,7 +414,7 @@ class Made_Test_Builder_Real
     /**
      * Delete an order
      *
-     * @param Mage_Sales_Model_Order | int $order The order ID or instance
+     * @param Mage_Sales_Model_Order|int $order The order ID, increment ID, or instance
      *
      * @return void
      */
@@ -406,6 +422,14 @@ class Made_Test_Builder_Real
     {
         if ($order instanceof Mage_Sales_Model_Order) {
             $id = $order->getId();
+        } else if (is_numeric($order) && strlen($order) == 9) {
+            $id = Mage::getModel('sales/order')
+                ->setWebsiteId(Mage::app()->getStore()->getWebsiteId())
+                ->loadByIncrementId($order)
+                ->getId();
+            if (!$id) {
+                return;
+            }
         } else {
             $id = $order;
         }
